@@ -10,30 +10,30 @@
 Adafruit_BME280 bme;
 
 // --- Constantes ---
-const float pi = 3.14159265;     //Número de pi
-int period = 5000;               //Tempo de medida(miliseconds)
-int delaytime = 2000;            //Invervalo entre as amostras (miliseconds)
-int radius = 147;                //Raio do anemometro(mm)
+const float pi = 3.14159265;     // Número de pi
+int period = 5000;               // Tempo de medida(miliseconds)
+int delaytime = 2000;            // Invervalo entre as amostras (miliseconds)
+int radius = 147;                // Raio do anemometro(mm)
 
 // --- Variáveis Globais ---
-unsigned int Sample  = 0;        //Armazena o número de amostras
-unsigned int counter = 0;        //Contador para o sensor  
-unsigned int RPM = 0;            //Rotações por minuto
-float speedwind = 0.0;           //Velocidade do vento (m/s)
-float windspeed = 0.0;           //Velocidade do vento (km/h)
-float temp = 0.0;                //temperatura em Celsius
-float umid = 0.0;                // umidade relativa %
-float pres = 0.0;                // pressao em Pa
+unsigned int Sample  = 0;        // Armazena o número de amostras
+unsigned int counter = 0;        // Contador para o sensor  
+unsigned int RPM = 0;            // Rotações por minuto
+float speedwind = 0.0;           // Velocidade do vento (m/s)
+float windspeed = 0.0;           // Velocidade do vento (km/h)
+float temp = 0.0;                // Temperatura em Celsius
+float umid = 0.0;                // Umidade relativa %
+float pres = 0.0;                // Pressao em Pa
 int pin =0;
 float valor =0;
 int Winddir =0;
 
-// Modulo GSM
+// --- Modulo GSM ---
 SoftwareSerial mySerial(10, 11);
-String apn;
-String apn_username;
-String apn_passwd;
-boolean pin2=LOW,pin3=LOW,pin4=LOW,pin5=LOW,pin6=LOW; 
+String apn;                      // Endereco da operadora
+String apn_username;             // Nome de usuário para login na operadora
+String apn_passwd;               // Senha para login na operadora
+// boolean pin2=LOW,pin3=LOW,pin4=LOW,pin5=LOW,pin6=LOW; 
 
 void setup()
 {
@@ -123,42 +123,29 @@ void SendDataToThinkSpeak()
   delay(2000);
   mySerial.println("AT+CIPMUX=0");
   delay(2000);
-//  ShowSerialData();
   apn = "claro.com.br";
   apn_username = "claro";
   apn_passwd = "claro";
-  mySerial.println("AT+CSTT=\"" + apn + "\",\"" + apn_username + "\",\"" + apn_passwd +  "\"\n");//start task and setting the APN,
+  mySerial.println("AT+CSTT=\"" + apn + "\",\"" + apn_username + "\",\"" + apn_passwd +  "\"\n"); //start task and setting the APN,
   delay(1000);
-//  ShowSerialData();
-  mySerial.println("AT+CIICR");//bring up wireless connection
+  mySerial.println("AT+CIICR"); //bring up wireless connection
   delay(3000);
-//  ShowSerialData();
-  mySerial.println("AT+CIFSR");//get local IP adress
+  mySerial.println("AT+CIFSR"); //get local IP adress
   delay(2000);
-//  ShowSerialData();
-   mySerial.println("AT+CIPSPRT=0");
+  mySerial.println("AT+CIPSPRT=0");
   delay(3000);
- //  ShowSerialData();
-  mySerial.println("AT+CIPSTART=\"TCP\",\"api.thingspeak.com\",\"80\"");//start up the connection
+  mySerial.println("AT+CIPSTART=\"TCP\",\"api.thingspeak.com\",\"80\""); //start up the connection
   delay(6000);
-//  ShowSerialData();
-  mySerial.println("AT+CIPSEND");//begin send data to remote server
+  mySerial.println("AT+CIPSEND"); //begin send data to remote server
   delay(4000);
-//  ShowSerialData();
-  String str="GET https://api.thingspeak.com/update?api_key=F4WSQ1YCLM8SB0RT&field1=" + String(windspeed)+"&field2="+String(Winddir)+"&field3="+String(temp);
+  String str="GET https://api.thingspeak.com/update?api_key=F4WSQ1YCLM8SB0RT&field1="+String(windspeed)+"&field2="+String(Winddir)+"&field3="+String(temp);
   mySerial.println(str);//begin send data to remote server
   delay(4000);
-//  ShowSerialData();
-//  str="GET https://api.thingspeak.com/update?api_key=F4WSQ1YCLM8SB0RT&field2=" + String(Winddir);
-//  mySerial.println(str);//begin send data to remote server
-//  delay(4000);
   mySerial.println((char)26);//sending
   delay(5000);//waitting for reply, important! the time is base on the condition of internet 
   mySerial.println();
-//  ShowSerialData();
   mySerial.println("AT+CIPSHUT");//close the connection
   delay(100);
-//  ShowSerialData();
 } 
 
 //===============================================================================
