@@ -19,7 +19,6 @@ int radius = 147;                // Raio do anemometro(mm)
 unsigned int Sample  = 0;        // Armazena o número de amostras
 unsigned int counter = 0;        // Contador para o sensor  
 unsigned int RPM = 0;            // Rotações por minuto
-float speedwind = 0.0;           // Velocidade do vento (m/s)
 float windspeed = 0.0;           // Velocidade do vento (km/h)
 float temp = 0.0;                // Temperatura em Celsius
 float umid = 0.0;                // Umidade relativa %
@@ -27,22 +26,26 @@ float pres = 0.0;                // Pressao em Pa
 int pin =0;
 float valor =0;
 int Winddir =0;
+int idir  = 0;
+char* dir[] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW" };  // human readable wind directions are only shown on the OLED
+
+
 
 // --- Modulo GSM ---
+
 SoftwareSerial mySerial(10, 11);
 String apn;                      // Endereco da operadora
 String apn_username;             // Nome de usuário para login na operadora
 String apn_passwd;               // Senha para login na operadora
-// boolean pin2=LOW,pin3=LOW,pin4=LOW,pin5=LOW,pin6=LOW; 
 
 void setup()
 {
   mySerial.begin(9600);               // the GPRS baud rate   
   Serial.begin(9600);    // the GPRS baud rate 
-  pinMode(3,INPUT);
-  pinMode(4,INPUT);
-  pinMode(5,INPUT);  
-  pinMode(6,INPUT);  
+//  pinMode(3,INPUT);
+//  pinMode(4,INPUT);
+//  pinMode(5,INPUT);  
+//  pinMode(6,INPUT);  
   delay(1000);
 
   // Anemometro
@@ -63,40 +66,36 @@ void loop()
       // anemometro
       Sample++;
       Serial.print(Sample);
-      Serial.print(": Start measurement... \n");
+      Serial.print(": Starting measurement... \n");
 
       // ANEMOMETRO
       windvelocity();
-      Serial.println("   finished.");
       Serial.print("Counter: ");
       Serial.print(counter);
       Serial.print(";  RPM: ");
       RPMcalc();
       Serial.print(RPM);
       Serial.print(";  Wind speed: ");
-  
-      // print km/h  
-      //WindSpeed_KPH();
-      //Serial.print(windspeed);
-      //Serial.print(" [km/h] ");  
 
       // print knots
       WindSpeed_KNOT();
       Serial.print(windspeed);
-      Serial.print(" [knot] ");  
+      Serial.print(" [knot]; ");  
 
       // BIRUTA (DIRECAO DO VENTO)
       WindDirection();
-      Serial.print(" Direcao: ");
+      Serial.print(" Wind direction: ");
       Serial.print(Winddir);
-      Serial.print(" graus \n");
+      Serial.print(" graus ("+String(dir[idir])+") ["+String(valor)+"v] \n");
 
       // BM280 (TEMPERATURA, UMIDADE E PRESSAO)
       ReadBME280();
 
+      Serial.println("   finished.\n");
+
       //delay (1000);
 
-      SendDataToThinkSpeak(); // ENVIO DOS DADOS PARA O THINGSPEAK
+      //SendDataToThinkSpeak(); // ENVIO DOS DADOS PARA O THINGSPEAK
    
       //if (mySerial.available())
       //Serial.write(mySerial.read());
@@ -212,34 +211,43 @@ void WindDirection()
 {
     valor = analogRead(pin)* (5.0 / 1023.0);
      
-    Serial.print("\n leitura do sensor :");
-    Serial.print(valor);
-    Serial.println(" volt");
-    
-    if (valor <= 0.27) {
+//    Serial.print("\n leitura do sensor :");
+//    Serial.print(valor);
+//    Serial.println(" volt");
+
+    if (valor <= 2.33) {
+    Winddir = 0;
+    idir = 0;
+    }
+    else if (valor <= 2.56) { 
     Winddir = 315;
+    idir = 1;    
     }
-    else if (valor <= 0.32) { 
+    else if (valor <= 2.64) { 
     Winddir = 270;
+    idir = 2;    
     }
-    else if (valor <= 0.38) { 
+    else if (valor <= 2.90) { 
     Winddir = 225;
+    idir = 3;    
     }
-    else if (valor <= 0.45) { 
+    else if (valor <= 3.20) { 
     Winddir = 180;
+    idir = 4;    
     }
-    else if (valor <= 0.57) { 
+    else if (valor <= 3.57) { 
     Winddir = 135;
+    idir = 5;
     }
-    else if (valor <= 0.75) { 
+    else if (valor <= 4.15) {  
     Winddir = 90;
+    idir = 6;    
     }
-    else if (valor <= 1.25) {  
+    else if (valor <= 5.00) {  
     Winddir = 45;
+    idir = 7;
     }
-    else {  
-    Winddir = 000;
-    }
+    
 }
 
 //===============================================================================
@@ -258,20 +266,20 @@ void ReadBME280()
     Serial.print("Temperature = ");
     temp = bme.readTemperature();
     Serial.print(temp);
-    Serial.println("*C");
+    Serial.print("*C; ");
 
     Serial.print("Pressure = ");
     pres = bme.readPressure() / 100.0F;
     Serial.print(pres);
-    Serial.println("hPa");
+    Serial.print("hPa; ");
 
     Serial.print("Approx. Altitude = ");
     Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
-    Serial.println("m");
+    Serial.print("m; ");
 
     Serial.print("Humidity = ");
     umid = bme.readHumidity();
     Serial.print(umid);
-    Serial.println("%");
+    Serial.print("%\n ");
 
 }
